@@ -28,19 +28,30 @@ def train_model(model, opt):
                     
         for i, batch in enumerate(opt.train): 
 
-            src = batch.src.transpose(0,1)
-            trg = batch.trg.transpose(0,1)
-            trg_input = trg[:, :-1]
-            src_mask, trg_mask = create_masks(src, trg_input, opt)
-            preds = model(src, trg_input, src_mask, trg_mask)
-            ys = trg[:, 1:].contiguous().view(-1)
-            opt.optimizer.zero_grad()
-            loss = F.cross_entropy(preds.view(-1, preds.size(-1)), ys, ignore_index=opt.trg_pad)
-            loss.backward()
-            opt.optimizer.step()
-            if opt.SGDR == True: 
-                opt.sched.step()
+            src = batch.English.transpose(0,1)
+            trg = batch.French.transpose(0,1)
+            # the French sentence we input has all words except
+            # the last, as it is using each word to predict the next
             
+            trg_input = trg[:, :-1]
+            
+            # the words we are trying to predict
+            
+            targets = trg[:, 1:].contiguous().view(-1)
+            
+            # create function to make masks using mask code above
+            
+            src_mask, trg_mask = create_masks(src, trg_input)
+            
+            preds = model(src, trg_input, src_mask, trg_mask)
+            
+            optim.zero_grad()
+            
+            loss = F.cross_entropy(preds.view(-1, preds.size(-1)),
+            results, ignore_index=target_pad)
+            loss.backward()
+            optim.step()
+
             total_loss += loss.item()
             
             if (i + 1) % opt.printevery == 0:
