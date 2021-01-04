@@ -8,26 +8,18 @@ from Optim import CosineWithRestarts
 from Batch import create_masks
 import dill as pickle
 
-def train_model(model, opt):
-    
-    print("training model...")
+def train_model(epochs, print_every=100):
+
     model.train()
+    
     start = time.time()
-    if opt.checkpoint > 0:
-        cptime = time.time()
+    temp = start    
+    
+    total_loss = 0
                  
     for epoch in range(opt.epochs):
-
-        total_loss = 0
-        if opt.floyd is False:
-            print("   %dm: epoch %d [%s]  %d%%  loss = %s" %\
-            ((time.time() - start)//60, epoch + 1, "".join(' '*20), 0, '...'), end='\r')
-        
-        if opt.checkpoint > 0:
-            torch.save(model.state_dict(), 'weights/model_weights')
                     
-        for i, batch in enumerate(opt.train): 
-
+        for i, batch in enumerate(train_iter): 
             src = batch.English.transpose(0,1)
             trg = batch.French.transpose(0,1)
             # the French sentence we input has all words except
